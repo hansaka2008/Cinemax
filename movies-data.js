@@ -6,7 +6,7 @@ export const OPENSUB_API_KEY = 'bqdHXy0PfXYKXVai3bIRDkANyZpeLtSG';
 export const WYZIE_KEY = 'wyzie-py8u0ol1g1xb60pf3z1kiy3ylweuug1l'; 
 
 // ===== TMDB API Integration =====
-export const TMDB_API_KEY = '9523692a1c20afced126956ea383b8';
+export const TMDB_API_KEY = '9520064911c99afcedd16e505ced58cb'; // අලුත් key eka
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMG_URL = 'https://image.tmdb.org/t/p/w200';
 
