@@ -1,28 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      p.timestamp = message.timestamp;
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<!-- PLAYABLE_TOUCH_PATCH_V1 --><script>
+(function() {
+  if (window.__playableTouchPatchInstalled) return;
+  window.__playableTouchPatchInstalled = true;
+  var origAdd = EventTarget.prototype.addEventListener;
+  var blockedTypes = { touchstart: 1, touchmove: 1, wheel: 1 };
+  EventTarget.prototype.addEventListener = function(type, listener, options) {
+    if (blockedTypes[type]) {
+      if (options === undefined || options === null) {
+        options = { passive: true };
+      } else if (typeof options === 'boolean') {
+        options = { capture: options, passive: true };
+      } else {
+        options = Object.assign({}, options, { passive: true });
+      }
+    }
+    return origAdd.call(this, type, listener, options);
+  };
+})();
+</script><script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- SEO Core Tags -->
 <title>Cinemax Elite - Best Hollywood සිංහල Movies & KDrama Download | Cinemax MD</title>
 <meta name="description" content="Cinemax Elite වෙතින් අලුත්ම Hollywood, Bollywood, K-Drama, Sinhala චිත්‍රපට සහ TV Series. High quality downloads, subtitles සහ fast updates. Watch online now.">
 <meta name="keywords" content="cinemax elite, cinemax md, sinhala movies download, korean drama sinhala sub, hollywood movies, bollywood films, hansaka345, cinemax-md, sri lanka movies">
 <meta name="author" content="Hansaka345">
 <link rel="canonical" href="https://hansaka345.github.io/cinemax-Md/">
 
+<!-- Google Verification - Search Console එකෙන් code එක අරන් මේක replace කරන්න -->
 <meta name="google-site-verification" content="PASTE_YOUR_GOOGLE_CODE_HERE" />
 
+<!-- Open Graph for Facebook/WhatsApp/Telegram -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hansaka345.github.io/cinemax-Md/">
 <meta property="og:title" content="Cinemax Elite - Movies & Series Download">
 <meta property="og:description" content="අලුත්ම චිත්‍රපට, TV Series සහ K-Drama. Sinhala Subtitles එක්ක.">
 <meta property="og:image" content="https://hansaka345.github.io/cinemax-Md/og-image.jpg">
 
+<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cinemax Elite - Movies & Series">
 <meta name="twitter:description" content="Best movie download site in Sri Lanka">
 <meta name="twitter:image" content="https://hansaka345.github.io/cinemax-Md/og-image.jpg">
 
+<!-- Favicon -->
 <link rel="icon" type="image/png" href="/favicon.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -73,7 +288,7 @@ html,body{background:var(--bg);color:var(--t1);font-family:'Roboto',sans-serif;m
 .sr-icon img{width:100%;height:100%;object-fit:cover}
 .sr-text{flex:1;min-width:0}
 .sr-title{font-size:14px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sr-sub覆{font-size:12px;color:var(--t3);margin-top:2px}
+.sr-sub{font-size:12px;color:var(--t3);margin-top:2px}
 .sr-go{color:var(--t3)}
 .sr-go svg{width:18px;height:18px}
 
@@ -148,19 +363,6 @@ html,body{background:var(--bg);color:var(--t1);font-family:'Roboto',sans-serif;m
 .back-btn:hover{background:rgba(0,0,0,.9)}
 .back-btn svg{width:24px;height:24px}
 
-/* ====== NEW CAST SECTION STYLES ====== */
-.cast-section {padding:0 16px 20px}
-.cast-title {font-size:18px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.cast-title svg {width:20px;height:20px;color:var(--red)}
-.cast-container {display:flex;overflow-x:auto;gap:15px;padding-bottom:10px;scrollbar-width:thin;scroll-behavior:smooth}
-.cast-container::-webkit-scrollbar {height:5px}
-.cast-container::-webkit-scrollbar-thumb {background:var(--bg4);border-radius:10px}
-.cast-card {flex:0 0 100px;text-align:center}
-.cast-card img {width:100px;height:135px;object-fit:cover;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.4);margin-bottom:6px}
-.cast-name {font-size:12px;font-weight:700;color:var(--t1);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cast-character {font-size:10px;color:var(--t3);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cast-loading {color:var(--t3);font-size:14px;padding:10px 0}
-
 /* EPISODE & MOVIE PLAYER SECTION */
 .player-section {padding: 0 16px 20px;}
 .player-title {font-size: 18px;font-weight: 700;margin-bottom: 12px;display: flex;align-items: center;gap: 8px;}
@@ -174,7 +376,7 @@ html,body{background:var(--bg);color:var(--t1);font-family:'Roboto',sans-serif;m
 .btn-action:hover {opacity: .85;}
 .btn-watch {background: var(--t1);color: #000;}
 .btn-download {background: var(--bg3);color: var(--t1);}
-.btn-whatsapp {background: #25D366;color: #fff;}
+.btn-whatsapp {background: #25D366;color: #fff;} /* WhatsApp කොළ පාට Button එක */
 .video-container {width: 100%;margin-top: 10px;background: #000;border-radius: 8px;overflow: hidden;display: none;}
 .video-container video {width: 100%;max-height: 450px;display: block;}
 
@@ -219,7 +421,7 @@ html,body{background:var(--bg);color:var(--t1);font-family:'Roboto',sans-serif;m
 .google-btn{width:100%;padding:13px;background:#fff;border:1px solid var(--bg4);border-radius:8px;color:#000;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:background.15s}
 .google-btn:hover{background:#f1f3f4}
 
-/* SETTINGS PANEL */
+/* SETTINGS PANEL - BOTTOM SHEET */
 .settings-panel{position:fixed;bottom:0;left:0;right:0;z-index:400;background:var(--bg2);border-top-left-radius:20px;border-top-right-radius:20px;transform:translateY(100%);transition:transform.3s cubic-bezier(0.4, 0, 0.2, 1);max-height:85vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,.5)}
 .settings-panel.open{transform:translateY(0)}
 .settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:399;backdrop-filter:blur(4px)}
@@ -317,13 +519,13 @@ html[data-theme="light"] .google-btn:hover{background:#f8f9fa}
 
   // ===== Firebase Config =====
   const firebaseConfig = {
-    apiKey: "AIzaSyAMGRwLXqe8a4bwAWFI_qOejoe8cy6frvQ",
-    authDomain: "cinemax-4eb13.firebaseapp.com",
-    projectId: "cinemax-4eb13",
-    storageBucket: "cinemax-4eb13.firebasestorage.app",
-    messagingSenderId: "372268799992",
-    appId: "1:372268799992:web:03248acee98fef8289a80d",
-    measurementId: "G-FFS8BW8BKS"
+    apiKey: "AIzaSyD0SpV_XwXPjwhuJcWnKsrKNCNrRIjtdPQ",
+    authDomain: "cinemax-md-69603.firebaseapp.com",
+    projectId: "cinemax-md-69603",
+    storageBucket: "cinemax-md-69603.firebasestorage.app",
+    messagingSenderId: "117707559400",
+    appId: "1:117707559400:web:63f8f5f45e600d0635d45d",
+    measurementId: "G-GJ92GQBBXQ"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -338,6 +540,78 @@ html[data-theme="light"] .google-btn:hover{background:#f8f9fa}
   window.signInWithEmailAndPassword = signInWithEmailAndPassword;
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 </script>
+
+<!-- IMDB Integration by Meta AI -->
+<style>
+.imdb-section { margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; }
+.imdb-cast { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
+.cast-card { min-width: 120px; text-align: center; color: #fff; }
+.cast-card img { width: 100px; height: 150px; object-fit: cover; border-radius: 8px; }
+.cast-name { font-size: 12px; margin-top: 5px; }
+.cast-character { font-size: 11px; color: #aaa; }
+.subtitle-link { display: inline-block; margin-top: 10px; padding: 8px 15px; background: #f5c518; color: #000; border-radius: 5px; text-decoration: none; font-weight: bold; }
+</style>
+
+<script>
+async function loadIMDBData(imdbID, containerId) {
+    if(!imdbID) return;
+    
+    const apiKey = 'trilogy'; // OMDb free key, replace with yours
+    const omdbUrl = `https://www.omdbapi.com/?i=${imdbID}&apikey=${apiKey}&plot=short`;
+    const tmdbApiKey = '9523692a1c20afced126956ea383b8'; // Get free from themoviedb.org
+    
+    try {
+        // Get basic info from OMDb
+        const omdbRes = await fetch(omdbUrl);
+        const omdbData = await omdbRes.json();
+        
+        // Get cast from TMDB using imdb_id
+        const findRes = await fetch(`https://api.themoviedb.org/3/find/${imdbID}?api_key=${tmdbApiKey}&external_source=imdb_id`);
+        const findData = await findRes.json();
+        
+        let tmdbId = null, mediaType = null;
+        if(findData.movie_results.length > 0) {
+            tmdbId = findData.movie_results[0].id;
+            mediaType = 'movie';
+        } else if(findData.tv_results.length > 0) {
+            tmdbId = findData.tv_results[0].id;
+            mediaType = 'tv';
+        }
+        
+        let castHTML = '';
+        if(tmdbId) {
+            const creditsRes = await fetch(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}/credits?api_key=${tmdbApiKey}`);
+            const creditsData = await creditsRes.json();
+            
+            castHTML = creditsData.cast.slice(0, 10).map(actor => `
+                <div class="cast-card">
+                    <img src="${actor.profile_path ? 'https://image.tmdb.org/t/p/w200' + actor.profile_path : 'https://via.placeholder.com/100x150?text=No+Image'}" alt="${actor.name}">
+                    <div class="cast-name">${actor.name}</div>
+                    <div class="cast-character">${actor.character}</div>
+                </div>
+            `).join('');
+        }
+        
+        const container = document.getElementById(containerId);
+        container.innerHTML = `
+            <div class="imdb-section">
+                <h3 style="color:#f5c518;">IMDb Info: ${omdbData.Title} (${omdbData.Year})</h3>
+                <p style="color:#ccc;">IMDb Rating: ⭐ ${omdbData.imdbRating} | ${omdbData.Genre}</p>
+                <a href="https://www.opensubtitles.org/en/search/sublanguageid-all/imdbid-${imdbID.replace('tt','')}" target="_blank" class="subtitle-link">📥 Download Subtitles</a>
+                <h4 style="color:#fff; margin-top:15px;">Top Cast</h4>
+                <div class="imdb-cast">${castHTML}</div>
+            </div>
+        `;
+    } catch(e) {
+        console.error('IMDB Load Error:', e);
+    }
+}
+
+// Usage: loadIMDBData('tt1234567', 'imdb-container-1');
+// Call this function with IMDb ID and div id where you want to show
+</script>
+<!-- End IMDB Integration -->
+
 </head>
 <body>
 
@@ -495,13 +769,13 @@ html[data-theme="light"] .google-btn:hover{background:#f8f9fa}
   </div>
 
   <div class="chips-wrap">
-    <button class="chip on" onclick="filterCategory('all',this)">🔥 Trending</button>
-    <button class="chip" onclick="filterCategory('hollywood',this)">🎬 Hollywood</button>
-    <button class="chip" onclick="filterCategory('kdrama',this)">🇰🇷 K-Drama</button>
-    <button class="chip" onclick="filterCategory('bollywood',this)">🇮🇳 Bollywood</button>
-    <button class="chip" onclick="filterCategory('sinhala',this)">🇱🇰 Sinhala</button>
-    <button class="chip" onclick="window.location.href='music.html'">🎵 Music</button>
-    <button class="chip" onclick="window.open('ai-chat.html', '_blank')">🤖 AI Support</button>
+  <button class="chip on" onclick="filterCategory('all',this)">🔥 Trending</button>
+  <button class="chip" onclick="filterCategory('hollywood',this)">🎬 Hollywood</button>
+  <button class="chip" onclick="filterCategory('kdrama',this)">🇰🇷 K-Drama</button>
+  <button class="chip" onclick="filterCategory('bollywood',this)">🇮🇳 Bollywood</button>
+  <button class="chip" onclick="filterCategory('sinhala',this)">🇱🇰 Sinhala</button>
+  <button class="chip" onclick="window.location.href='music.html'">🎵 Music</button>
+  <button class="chip" onclick="window.open('ai-chat.html', '_blank')">🤖 AI Support</button>
   </div>
 
   <div class="section">
@@ -549,9 +823,6 @@ import {
   OMDB_KEYS, SUBDL_KEY, OPENSUB_API_KEY, WYZIE_KEY, 
   EPISODES_DATA, CUSTOM_MOVIES_DATA, HERO_SERIES, CATEGORIES, LANG_MAP 
 } from './movies-data.js';
-
-// ඔබේ TMDB API KEY එක මෙතැනට අර්ථ දක්වා ඇත
-const TMDB_API_KEY = '9520064911c99afcedd16e505ced58cb';
 
 function getLang(code) {
   const c = (code || '').toLowerCase();
@@ -931,9 +1202,13 @@ async function buildMovieSubtitles(imdbID, title, year, container) {
   if (CUSTOM_MOVIES_DATA[imdbID]) {
     const customMovie = CUSTOM_MOVIES_DATA[imdbID];
     
+        // 🟢 MOVIES සඳහා WhatsApp Link එක සකස් කිරීම
     let whatsappBtnHTML = '';
     if (customMovie.whatsappDownloadUrl) {
+      // ඔයාගේ නම්බර් එක මෙතනට දාන්න (උදා: 94771234567)
       const myWhatsAppNumber = "94775062608"; 
+      
+      // මැසේජ් එක .download [link] ලෙස සකස් කිරීම
       const rawMessage = `.download ${customMovie.videoUrl}`;
       const encodedMessage = encodeURIComponent(rawMessage);
       const finalWhatsAppUrl = `https://wa.me/${myWhatsAppNumber}?text=${encodedMessage}`;
@@ -944,6 +1219,7 @@ async function buildMovieSubtitles(imdbID, title, year, container) {
         </a>
       `;
     }
+
 
     customPlayerHTML = `
       <div class="ep-list" style="margin-bottom: 20px;">
@@ -1049,9 +1325,13 @@ async function loadSeasonSubs(imdbID, title, year, season) {
       for (let epNum in eps) {
         const ep = eps[epNum];
         
+                // 🟢 TV SERIES එපිසෝඩ්ස් සඳහා WhatsApp Link එක සකස් කිරීම
         let whatsappBtnHTML = '';
         if (ep.whatsappDownloadUrl) {
+          // ඔයාගේ නම්බර් එක මෙතනට දාන්න (උදා: 94771234567)
           const myWhatsAppNumber = "94775062608"; 
+
+          // මැසේජ් එක .download [link] ලෙස සකස් කිරීම
           const rawMessage = `.download ${ep.videoUrl}`;
           const encodedMessage = encodeURIComponent(rawMessage);
           const finalWhatsAppUrl = `https://wa.me/${myWhatsAppNumber}?text=${encodedMessage}`;
@@ -1062,6 +1342,7 @@ async function loadSeasonSubs(imdbID, title, year, season) {
             </a>
           `;
         }
+
 
         epHTML += `
           <div class="ep-card">
@@ -1211,67 +1492,6 @@ function renderSubsEmpty(msg) {
       <div>${msg}</div>
     </div>
   `;
-}
-
-// ====== NEW FETCH & DISPLAY CAST FUNCTIONS ======
-async function fetchCastByImdbId(imdbId, type = 'movie') {
-  try {
-    const findUrl = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
-    const findResponse = await fetch(findUrl);
-    const findData = await findResponse.json();
-
-    let tmdbId = null;
-    let mediaType = type;
-
-    if (findData.movie_results && findData.movie_results.length > 0) {
-      tmdbId = findData.movie_results[0].id;
-      mediaType = 'movie';
-    } else if (findData.tv_results && findData.tv_results.length > 0) {
-      tmdbId = findData.tv_results[0].id;
-      mediaType = 'tv';
-    }
-
-    if (!tmdbId) return [];
-
-    const creditsUrl = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/credits?api_key=${TMDB_API_KEY}`;
-    const creditsResponse = await fetch(creditsUrl);
-    const creditsData = await creditsResponse.json();
-
-    return creditsData.cast.slice(0, 10).map(actor => ({
-      name: actor.name,
-      character: actor.character,
-      profileUrl: actor.profile_path 
-        ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
-        : 'https://via.placeholder.com/185x278?text=No+Image'
-    }));
-  } catch (error) {
-    console.error("Cast error:", error);
-    return [];
-  }
-}
-
-async function displayCast(imdbId, type) {
-  const container = document.getElementById('cast-container');
-  if (!container) return;
-
-  const castList = await fetchCastByImdbId(imdbId, type);
-  container.innerHTML = '';
-
-  if (castList.length === 0) {
-    container.innerHTML = '<p class="cast-loading">No cast information available.</p>';
-    return;
-  }
-
-  castList.forEach(actor => {
-    const cardHTML = `
-      <div class="cast-card">
-        <img src="${actor.profileUrl}" alt="${actor.name}" loading="lazy">
-        <span class="cast-name">${actor.name}</span>
-        <span class="cast-character">${actor.character}</span>
-      </div>
-    `;
-    container.insertAdjacentHTML('beforeend', cardHTML);
-  });
 }
 
 // ===== HERO SLIDER =====
@@ -1472,7 +1692,6 @@ async function showMovieDetail(imdbID) {
   const genres = data.Genre? data.Genre.split(', ') : [];
   const isSeriesType = data.Type === 'series';
 
-  // HTML එක වෙනස් කර .subs-section එකට ඉහළින් .cast-section එක එකතු කරන ලදි
   detailPage.innerHTML = `
     <button class="back-btn" onclick="goHome()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
@@ -1510,17 +1729,6 @@ async function showMovieDetail(imdbID) {
         </div>
       </div>
     </div>
-    
-    <div class="cast-section">
-      <div class="cast-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Cast & Crew
-      </div>
-      <div id="cast-container" class="cast-container">
-        <p class="cast-loading">Loading cast...</p>
-      </div>
-    </div>
-
     <div class="subs-section">
       <div class="subs-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M6 12h4M6 16h8M14 12h4"/></svg>
@@ -1532,9 +1740,6 @@ async function showMovieDetail(imdbID) {
   `;
 
   detailPage.dataset.imdbid = imdbID;
-  
-  // මෙතැනදී Cast එක Load කිරීමට අදාළ function එක call කරයි
-  displayCast(imdbID, data.Type);
   await buildSubtitlesSection(data);
 }
 window.showMovieDetail = showMovieDetail;
@@ -1572,5 +1777,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 </body>
-</html>
-
+  </html>
