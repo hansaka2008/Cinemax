@@ -1,72 +1,98 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Details - Cinemax</title>
+    <title>Movie Details</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0f0f0f; color: #fff; font-family: Arial, sans-serif; }
+        body { background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
        .back-btn { 
-            display: inline-block; margin-bottom: 20px; padding: 10px 20px; 
-            background: #222; color: #fff; text-decoration: none; border-radius: 5px; 
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-bottom: 25px; padding: 10px 18px; 
+            background: #1f1f1f; color: #fff; text-decoration: none; 
+            border-radius: 8px; font-size: 14px;
         }
-       .movie-header { display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; }
-       .poster { width: 300px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
-       .movie-info { flex: 1; min-width: 300px; }
-       .movie-title { font-size: 36px; margin-bottom: 10px; }
-       .meta { color: #aaa; margin-bottom: 15px; font-size: 16px; }
-       .rating { color: #f5c518; font-size: 24px; font-weight: bold; }
-       .genres { margin: 15px 0; }
+       .back-btn:hover { background: #2a2a2a; }
+       .movie-header { display: flex; gap: 35px; margin-bottom: 40px; flex-wrap: wrap; }
+       .poster { 
+            width: 320px; border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
+        }
+       .movie-info { flex: 1; min-width: 320px; }
+       .movie-title { font-size: 42px; margin-bottom: 12px; line-height: 1.2; }
+       .meta-row { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+       .year { color: #aaa; font-size: 18px; }
+       .runtime { color: #aaa; font-size: 16px; }
+       .rating { 
+            color: #f5c518; font-size: 22px; font-weight: 700; 
+            display: flex; align-items: center; gap: 5px;
+        }
+       .genres { margin: 18px 0; }
        .genre-tag { 
-            display: inline-block; padding: 6px 14px; background: #333; 
-            border-radius: 20px; margin: 5px 5px 5px 0; font-size: 14px;
+            display: inline-block; padding: 7px 16px; background: #2a2a2a; 
+            border-radius: 20px; margin: 5px 8px 5px 0; font-size: 14px;
+            border: 1px solid #333;
         }
-       .overview { line-height: 1.7; margin: 20px 0; color: #ddd; }
+       .overview { line-height: 1.8; margin: 25px 0; color: #ccc; font-size: 16px; }
        .subtitle-btn { 
-            display: inline-block; margin: 15px 0; padding: 12px 25px; 
-            background: #f5c518; color: #000; border-radius: 5px; 
-            text-decoration: none; font-weight: bold; transition: 0.3s;
+            display: inline-block; margin: 15px 0; padding: 14px 28px; 
+            background: #f5c518; color: #000; border-radius: 8px; 
+            text-decoration: none; font-weight: 700; font-size: 15px;
+            transition: 0.2s;
         }
-       .subtitle-btn:hover { background: #d4a516; }
+       .subtitle-btn:hover { background: #d4a516; transform: translateY(-2px); }
         
-        /* ===== Cast Section - මේක අලුතෙන් ===== */
-       .cast-section { margin-top: 40px; }
-       .cast-section h2 { font-size: 28px; margin-bottom: 20px; }
+        /* ===== Cast Section ===== */
+       .cast-section { margin-top: 50px; }
+       .cast-section h2 { font-size: 30px; margin-bottom: 25px; }
        .cast-grid { 
-            display: flex; gap: 15px; overflow-x: auto; 
-            padding: 15px 0; scrollbar-width: thin;
+            display: flex; gap: 18px; overflow-x: auto; 
+            padding: 15px 5px; scrollbar-width: thin;
         }
-       .cast-grid::-webkit-scrollbar { height: 8px; }
-       .cast-grid::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+       .cast-grid::-webkit-scrollbar { height: 10px; }
+       .cast-grid::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 5px; }
+       .cast-grid::-webkit-scrollbar-thumb { background: #444; border-radius: 5px; }
        .cast-card { 
-            min-width: 130px; text-align: center; background: #1a1a1a;
-            padding: 10px; border-radius: 10px; transition: 0.3s;
+            min-width: 140px; text-align: center; background: #161616;
+            padding: 12px; border-radius: 12px; transition: 0.3s;
+            border: 1px solid #222;
         }
-       .cast-card:hover { transform: scale(1.05); background: #222; }
+       .cast-card:hover { transform: translateY(-5px); background: #1f1f1f; border-color: #333; }
        .cast-card img { 
-            width: 110px; height: 165px; object-fit: cover; 
-            border-radius: 8px; margin-bottom: 8px; 
+            width: 116px; height: 174px; object-fit: cover; 
+            border-radius: 8px; margin-bottom: 10px; 
         }
-       .cast-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-       .cast-character { font-size: 11px; color: #999; }
+       .cast-name { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+       .cast-character { font-size: 12px; color: #888; }
         
-       .watch-section { margin-top: 40px; background: #1a1a1a; padding: 20px; border-radius: 10px; }
-       .watch-btn,.download-btn { 
-            padding: 12px 25px; margin: 10px 10px 10px 0; border-radius: 5px; 
-            text-decoration: none; display: inline-block; font-weight: bold;
+       .watch-section { 
+            margin-top: 50px; background: #161616; padding: 25px; 
+            border-radius: 12px; border: 1px solid #222;
+        }
+       .watch-section h2 { margin-bottom: 20px; }
+       .watch-btn,.download-btn,.whatsapp-btn { 
+            padding: 14px 28px; margin: 8px 12px 8px 0; border-radius: 8px; 
+            text-decoration: none; display: inline-block; font-weight: 700;
+            transition: 0.2s; font-size: 15px;
         }
        .watch-btn { background: #e50914; color: #fff; }
+       .watch-btn:hover { background: #c00812; }
        .download-btn { background: #333; color: #fff; }
+       .download-btn:hover { background: #444; }
        .whatsapp-btn { background: #25D366; color: #fff; }
+       .whatsapp-btn:hover { background: #1faa52; }
+        
+       .loading { text-align: center; padding: 100px 20px; font-size: 18px; color: #666; }
+       .error { text-align: center; padding: 100px 20px; color: #e50914; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-btn">← Back</a>
+        <a href="index.html" class="back-btn">← Back to Home</a>
         <div id="movie-content">
-            <p style="text-align:center; padding:50px;">Loading...</p>
+            <div class="loading">Loading movie details...</div>
         </div>
     </div>
 
@@ -81,27 +107,30 @@
         const imdbId = new URLSearchParams(window.location.search).get('id');
         
         async function loadMovie() {
+            const contentDiv = document.getElementById('movie-content');
+            
             if (!imdbId) {
-                document.getElementById('movie-content').innerHTML = '<h2>Error: IMDb ID එක URL එකේ නෑ</h2>';
+                contentDiv.innerHTML = '<div class="error"><h2>Error: No IMDb ID found in URL</h2><p>Add?id=tt0241527 to the URL</p></div>';
                 return;
             }
             
-            // TMDB එකෙන් details + cast ගන්නවා
+            // TMDB එකෙන් data ගන්නවා
             const data = await fetchTMDBByImdbId(imdbId);
             if (!data) {
-                document.getElementById('movie-content').innerHTML = '<h2>Error: Movie එක හොයාගන්න බෑ</h2>';
+                contentDiv.innerHTML = '<div class="error"><h2>Error: Movie not found</h2><p>Could not load data from TMDB</p></div>';
                 return;
             }
             
-            // CUSTOM_MOVIES_DATA එකෙන් video links ගන්නවා
+            // ඔයාගේ video links
             const customData = CUSTOM_MOVIES_DATA[imdbId];
             
-            document.getElementById('movie-content').innerHTML = `
+            contentDiv.innerHTML = `
                 <div class="movie-header">
                     <img src="${data.poster}" class="poster" alt="${data.title}">
                     <div class="movie-info">
-                        <h1 class="movie-title">${data.title} (${data.year})</h1>
-                        <div class="meta">
+                        <h1 class="movie-title">${data.title}</h1>
+                        <div class="meta-row">
+                            <span class="year">${data.year}</span>
                             <span class="rating">⭐ ${data.rating}/10</span>
                         </div>
                         <div class="genres">
@@ -114,7 +143,7 @@
                     </div>
                 </div>
 
-                <!-- ===== Cast Section - මේක තමයි අලුතෙන් ===== -->
+                <!-- Cast Section - මෙන්න Cast එක -->
                 <div class="cast-section">
                     <h2>Top Cast</h2>
                     <div class="cast-grid">
@@ -122,14 +151,14 @@
                     </div>
                 </div>
 
-                <!-- Watch & Download Section -->
+                <!-- Watch & Download -->
                 ${customData? `
                 <div class="watch-section">
                     <h2>Watch & Download</h2>
                     <a href="${customData.videoUrl}" target="_blank" class="watch-btn">▶ Watch Movie</a>
-                    <a href="${customData.whatsappDownloadUrl}" target="_blank" class="watch-btn whatsapp-btn">📱 Download on WhatsApp</a>
+                    <a href="${customData.whatsappDownloadUrl}" target="_blank" class="whatsapp-btn">📱 Download on WhatsApp</a>
                 </div>
-                ` : '<p style="color:#666; margin-top:30px;">No additional subtitles found for this movie.</p>'}
+                ` : ''}
             `;
         }
         
