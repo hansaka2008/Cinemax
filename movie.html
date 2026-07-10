@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Details</title>
+    <style>
+        body { background: #0f0f0f; color: #fff; font-family: Arial; padding: 20px; }
+        .cast-grid { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
+        .cast-card { min-width: 120px; text-align: center; }
+        .cast-card img { width: 100px; height: 150px; object-fit: cover; border-radius: 8px; }
+        .cast-name { font-size: 12px; margin-top: 5px; font-weight: bold; }
+        .cast-character { font-size: 11px; color: #aaa; }
+        .subtitle-btn { 
+            display: inline-block; margin: 15px 0; padding: 12px 25px; 
+            background: #f5c518; color: #000; border-radius: 5px; 
+            text-decoration: none; font-weight: bold; 
+        }
+        .poster { border-radius: 10px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div id="movie-content">Loading...</div>
+
+    <script type="module">
+        import { 
+            fetchTMDBByImdbId, 
+            getSubtitleSearchUrl, 
+            renderCastHTML 
+        } from './movie.js'; // movie.js එකේ නම හරියටම දාන්න
+
+        const imdbId = new URLSearchParams(window.location.search).get('id');
+        
+        async function init() {
+            if (!imdbId) {
+                document.getElementById('movie-content').innerHTML = 'Error: IMDb ID එක URL එකේ නෑ';
+                return;
+            }
+            
+            const data = await fetchTMDBByImdbId(imdbId);
+            if (!data) {
+                document.getElementById('movie-content').innerHTML = 'Error: Movie එක හොයාගන්න බෑ';
+                return;
+            }
+            
+            document.getElementById('movie-content').innerHTML = `
+                <h1>${data.title} (${data.year}) ⭐ ${data.rating}</h1>
+                <p>${data.genres}</p>
+                <img src="${data.poster}" width="300" class="poster">
+                <p>${data.overview}</p>
+                <a href="${getSubtitleSearchUrl(imdbId)}" target="_blank" class="subtitle-btn">
+                    📥 Subtitles Download
+                </a>
+                <h2>Cast</h2>
+                <div class="cast-grid">${renderCastHTML(data.cast)}</div>
+            `;
+        }
+        init();
+    </script>
+</body>
+</html>
