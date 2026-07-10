@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Details</title>
+    <title>Movie Details - Cinemax</title>
     <style>
-        body { background: #0f0f0f; color: #fff; font-family: Arial; padding: 20px; }
-        .cast-grid { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
+        body { background: #0f0f0f; color: #fff; font-family: Arial; padding: 20px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .poster { border-radius: 10px; margin: 15px 0; max-width: 300px; }
+        .cast-grid { display: flex; gap: 15px; overflow-x: auto; padding: 15px 0; }
         .cast-card { min-width: 120px; text-align: center; }
         .cast-card img { width: 100px; height: 150px; object-fit: cover; border-radius: 8px; }
         .cast-name { font-size: 12px; margin-top: 5px; font-weight: bold; }
@@ -16,42 +18,47 @@
             background: #f5c518; color: #000; border-radius: 5px; 
             text-decoration: none; font-weight: bold; 
         }
-        .poster { border-radius: 10px; margin: 15px 0; }
+        .rating { color: #f5c518; font-size: 20px; }
+        .genres { color: #aaa; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <div id="movie-content">Loading...</div>
+    <div class="container">
+        <div id="movie-content">Loading...</div>
+    </div>
 
     <script type="module">
+        // ⚠️ වැදගත්: file name එක movies-data.js කියල දාන්න
         import { 
             fetchTMDBByImdbId, 
             getSubtitleSearchUrl, 
             renderCastHTML 
-        } from './movie.js'; // movie.js එකේ නම හරියටම දාන්න
+        } from './movies-data.js';
 
         const imdbId = new URLSearchParams(window.location.search).get('id');
         
         async function init() {
             if (!imdbId) {
-                document.getElementById('movie-content').innerHTML = 'Error: IMDb ID එක URL එකේ නෑ';
+                document.getElementById('movie-content').innerHTML = '<h2>Error: URL එකේ ?id=tt... නෑ</h2>';
                 return;
             }
             
             const data = await fetchTMDBByImdbId(imdbId);
             if (!data) {
-                document.getElementById('movie-content').innerHTML = 'Error: Movie එක හොයාගන්න බෑ';
+                document.getElementById('movie-content').innerHTML = '<h2>Error: Movie එක හොයාගන්න බෑ</h2>';
                 return;
             }
             
             document.getElementById('movie-content').innerHTML = `
-                <h1>${data.title} (${data.year}) ⭐ ${data.rating}</h1>
-                <p>${data.genres}</p>
-                <img src="${data.poster}" width="300" class="poster">
+                <h1>${data.title} (${data.year})</h1>
+                <div class="rating">⭐ ${data.rating}/10</div>
+                <div class="genres">${data.genres}</div>
+                <img src="${data.poster}" class="poster" alt="${data.title}">
                 <p>${data.overview}</p>
                 <a href="${getSubtitleSearchUrl(imdbId)}" target="_blank" class="subtitle-btn">
                     📥 Subtitles Download
                 </a>
-                <h2>Cast</h2>
+                <h2>Top Cast</h2>
                 <div class="cast-grid">${renderCastHTML(data.cast)}</div>
             `;
         }
