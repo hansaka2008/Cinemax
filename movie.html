@@ -5,64 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Details - Cinemax</title>
     <style>
-        body { background: #0f0f0f; color: #fff; font-family: Arial; padding: 20px; margin: 0; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .poster { border-radius: 10px; margin: 15px 0; max-width: 300px; }
-        .cast-grid { display: flex; gap: 15px; overflow-x: auto; padding: 15px 0; }
-        .cast-card { min-width: 120px; text-align: center; }
-        .cast-card img { width: 100px; height: 150px; object-fit: cover; border-radius: 8px; }
-        .cast-name { font-size: 12px; margin-top: 5px; font-weight: bold; }
-        .cast-character { font-size: 11px; color: #aaa; }
-        .subtitle-btn { 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f0f0f; color: #fff; font-family: Arial, sans-serif; }
+       .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+       .back-btn { 
+            display: inline-block; margin-bottom: 20px; padding: 10px 20px; 
+            background: #222; color: #fff; text-decoration: none; border-radius: 5px; 
+        }
+       .movie-header { display: flex; gap: 30px; margin-bottom: 30px; flex-wrap: wrap; }
+       .poster { width: 300px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+       .movie-info { flex: 1; min-width: 300px; }
+       .movie-title { font-size: 36px; margin-bottom: 10px; }
+       .meta { color: #aaa; margin-bottom: 15px; font-size: 16px; }
+       .rating { color: #f5c518; font-size: 24px; font-weight: bold; }
+       .genres { margin: 15px 0; }
+       .genre-tag { 
+            display: inline-block; padding: 6px 14px; background: #333; 
+            border-radius: 20px; margin: 5px 5px 5px 0; font-size: 14px;
+        }
+       .overview { line-height: 1.7; margin: 20px 0; color: #ddd; }
+       .subtitle-btn { 
             display: inline-block; margin: 15px 0; padding: 12px 25px; 
             background: #f5c518; color: #000; border-radius: 5px; 
-            text-decoration: none; font-weight: bold; 
+            text-decoration: none; font-weight: bold; transition: 0.3s;
         }
-        .rating { color: #f5c518; font-size: 20px; }
-        .genres { color: #aaa; margin: 10px 0; }
+       .subtitle-btn:hover { background: #d4a516; }
+        
+        /* ===== Cast Section - මේක අලුතෙන් ===== */
+       .cast-section { margin-top: 40px; }
+       .cast-section h2 { font-size: 28px; margin-bottom: 20px; }
+       .cast-grid { 
+            display: flex; gap: 15px; overflow-x: auto; 
+            padding: 15px 0; scrollbar-width: thin;
+        }
+       .cast-grid::-webkit-scrollbar { height: 8px; }
+       .cast-grid::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+       .cast-card { 
+            min-width: 130px; text-align: center; background: #1a1a1a;
+            padding: 10px; border-radius: 10px; transition: 0.3s;
+        }
+       .cast-card:hover { transform: scale(1.05); background: #222; }
+       .cast-card img { 
+            width: 110px; height: 165px; object-fit: cover; 
+            border-radius: 8px; margin-bottom: 8px; 
+        }
+       .cast-name { font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+       .cast-character { font-size: 11px; color: #999; }
+        
+       .watch-section { margin-top: 40px; background: #1a1a1a; padding: 20px; border-radius: 10px; }
+       .watch-btn,.download-btn { 
+            padding: 12px 25px; margin: 10px 10px 10px 0; border-radius: 5px; 
+            text-decoration: none; display: inline-block; font-weight: bold;
+        }
+       .watch-btn { background: #e50914; color: #fff; }
+       .download-btn { background: #333; color: #fff; }
+       .whatsapp-btn { background: #25D366; color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="movie-content">Loading...</div>
+        <a href="index.html" class="back-btn">← Back</a>
+        <div id="movie-content">
+            <p style="text-align:center; padding:50px;">Loading...</p>
+        </div>
     </div>
 
     <script type="module">
-        // ⚠️ වැදගත්: file name එක movies-data.js කියල දාන්න
         import { 
             fetchTMDBByImdbId, 
             getSubtitleSearchUrl, 
-            renderCastHTML 
+            renderCastHTML,
+            CUSTOM_MOVIES_DATA 
         } from './movies-data.js';
 
         const imdbId = new URLSearchParams(window.location.search).get('id');
         
-        async function init() {
+        async function loadMovie() {
             if (!imdbId) {
-                document.getElementById('movie-content').innerHTML = '<h2>Error: URL එකේ ?id=tt... නෑ</h2>';
+                document.getElementById('movie-content').innerHTML = '<h2>Error: IMDb ID එක URL එකේ නෑ</h2>';
                 return;
             }
             
+            // TMDB එකෙන් details + cast ගන්නවා
             const data = await fetchTMDBByImdbId(imdbId);
             if (!data) {
                 document.getElementById('movie-content').innerHTML = '<h2>Error: Movie එක හොයාගන්න බෑ</h2>';
                 return;
             }
             
+            // CUSTOM_MOVIES_DATA එකෙන් video links ගන්නවා
+            const customData = CUSTOM_MOVIES_DATA[imdbId];
+            
             document.getElementById('movie-content').innerHTML = `
-                <h1>${data.title} (${data.year})</h1>
-                <div class="rating">⭐ ${data.rating}/10</div>
-                <div class="genres">${data.genres}</div>
-                <img src="${data.poster}" class="poster" alt="${data.title}">
-                <p>${data.overview}</p>
-                <a href="${getSubtitleSearchUrl(imdbId)}" target="_blank" class="subtitle-btn">
-                    📥 Subtitles Download
-                </a>
-                <h2>Top Cast</h2>
-                <div class="cast-grid">${renderCastHTML(data.cast)}</div>
+                <div class="movie-header">
+                    <img src="${data.poster}" class="poster" alt="${data.title}">
+                    <div class="movie-info">
+                        <h1 class="movie-title">${data.title} (${data.year})</h1>
+                        <div class="meta">
+                            <span class="rating">⭐ ${data.rating}/10</span>
+                        </div>
+                        <div class="genres">
+                            ${data.genres.split(', ').map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                        </div>
+                        <p class="overview">${data.overview}</p>
+                        <a href="${getSubtitleSearchUrl(imdbId)}" target="_blank" class="subtitle-btn">
+                            📥 Download Subtitles
+                        </a>
+                    </div>
+                </div>
+
+                <!-- ===== Cast Section - මේක තමයි අලුතෙන් ===== -->
+                <div class="cast-section">
+                    <h2>Top Cast</h2>
+                    <div class="cast-grid">
+                        ${renderCastHTML(data.cast)}
+                    </div>
+                </div>
+
+                <!-- Watch & Download Section -->
+                ${customData? `
+                <div class="watch-section">
+                    <h2>Watch & Download</h2>
+                    <a href="${customData.videoUrl}" target="_blank" class="watch-btn">▶ Watch Movie</a>
+                    <a href="${customData.whatsappDownloadUrl}" target="_blank" class="watch-btn whatsapp-btn">📱 Download on WhatsApp</a>
+                </div>
+                ` : '<p style="color:#666; margin-top:30px;">No additional subtitles found for this movie.</p>'}
             `;
         }
-        init();
+        
+        loadMovie();
     </script>
 </body>
 </html>
