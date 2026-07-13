@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Playables SDK -->
 <script>// Playables SDK v1.0.0
 // Game lifecycle bridge: rAF-based game-ready detection + event communication
 (function() {
@@ -191,7 +190,7 @@
     originalRAF.call(window, onFrame);
   }
 })();</script>
-<!-- PLAYABLE_TOUCH_PATCH_V1 --><script>
+<script>
 (function() {
   if (window.__playableTouchPatchInstalled) return;
   window.__playableTouchPatchInstalled = true;
@@ -214,30 +213,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SEO Core Tags -->
 <title>Cinemax Elite - Best Hollywood සිංහල Movies & KDrama Download | Cinemax MD</title>
 <meta name="description" content="Cinemax Elite වෙතින් අලුත්ම Hollywood, Bollywood, K-Drama, Sinhala චිත්‍රපට සහ TV Series. High quality downloads, subtitles සහ fast updates. Watch online now.">
 <meta name="keywords" content="cinemax elite, cinemax md, sinhala movies download, korean drama sinhala sub, hollywood movies, bollywood films, hansaka345, cinemax-md, sri lanka movies">
 <meta name="author" content="Hansaka345">
 <link rel="canonical" href="https://hansaka345.github.io/cinemax-Md/">
 
-<!-- Google Verification - Search Console එකෙන් code එක අරන් මේක replace කරන්න -->
 <meta name="google-site-verification" content="PASTE_YOUR_GOOGLE_CODE_HERE" />
 
-<!-- Open Graph for Facebook/WhatsApp/Telegram -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hansaka345.github.io/cinemax-Md/">
 <meta property="og:title" content="Cinemax Elite - Movies & Series Download">
 <meta property="og:description" content="අලුත්ම චිත්‍රපට, TV Series සහ K-Drama. Sinhala Subtitles එක්ක.">
 <meta property="og:image" content="https://hansaka345.github.io/cinemax-Md/og-image.jpg">
 
-<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cinemax Elite - Movies & Series">
 <meta name="twitter:description" content="Best movie download site in Sri Lanka">
 <meta name="twitter:image" content="https://hansaka345.github.io/cinemax-Md/og-image.jpg">
 
-<!-- Favicon -->
 <link rel="icon" type="image/png" href="/favicon.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -376,7 +370,7 @@ html,body{background:var(--bg);color:var(--t1);font-family:'Roboto',sans-serif;m
 .btn-action:hover {opacity: .85;}
 .btn-watch {background: var(--t1);color: #000;}
 .btn-download {background: var(--bg3);color: var(--t1);}
-.btn-whatsapp {background: #25D366;color: #fff;} /* WhatsApp කොළ පාට Button එක */
+.btn-whatsapp {background: #25D366;color: #fff;} /* WhatsApp Button Color */
 .video-container {width: 100%;margin-top: 10px;background: #000;border-radius: 8px;overflow: hidden;display: none;}
 .video-container video {width: 100%;max-height: 450px;display: block;}
 
@@ -542,7 +536,6 @@ const firebaseConfig = {
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
 </script>
 
-<!-- IMDB Integration by Meta AI -->
 <style>
 .imdb-section { margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; }
 .imdb-cast { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
@@ -607,12 +600,7 @@ async function loadIMDBData(imdbID, containerId) {
         console.error('IMDB Load Error:', e);
     }
 }
-
-// Usage: loadIMDBData('tt1234567', 'imdb-container-1');
-// Call this function with IMDb ID and div id where you want to show
 </script>
-<!-- End IMDB Integration -->
-
 </head>
 <body>
 
@@ -879,7 +867,7 @@ async function handleEmailLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value.trim();
 
-  if (!email ||!password) {
+  if (!email || !password) {
     showLoginError('Email සහ Password දෙකම ඕන');
     return;
   }
@@ -1203,13 +1191,10 @@ async function buildMovieSubtitles(imdbID, title, year, container) {
   if (CUSTOM_MOVIES_DATA[imdbID]) {
     const customMovie = CUSTOM_MOVIES_DATA[imdbID];
     
-        // 🟢 MOVIES සඳහා WhatsApp Link එක සකස් කිරීම
+    // WhatsApp Link Integration
     let whatsappBtnHTML = '';
     if (customMovie.whatsappDownloadUrl) {
-      // ඔයාගේ නම්බර් එක මෙතනට දාන්න (උදා: 94771234567)
       const myWhatsAppNumber = "94775062608"; 
-      
-      // මැසේජ් එක .download [link] ලෙස සකස් කිරීම
       const rawMessage = `.download ${customMovie.videoUrl}`;
       const encodedMessage = encodeURIComponent(rawMessage);
       const finalWhatsAppUrl = `https://wa.me/${myWhatsAppNumber}?text=${encodedMessage}`;
@@ -1220,7 +1205,6 @@ async function buildMovieSubtitles(imdbID, title, year, container) {
         </a>
       `;
     }
-
 
     customPlayerHTML = `
       <div class="ep-list" style="margin-bottom: 20px;">
@@ -1326,13 +1310,10 @@ async function loadSeasonSubs(imdbID, title, year, season) {
       for (let epNum in eps) {
         const ep = eps[epNum];
         
-                // 🟢 TV SERIES එපිසෝඩ්ස් සඳහා WhatsApp Link එක සකස් කිරීම
+        // WhatsApp Link for TV Series Episodes
         let whatsappBtnHTML = '';
         if (ep.whatsappDownloadUrl) {
-          // ඔයාගේ නම්බර් එක මෙතනට දාන්න (උදා: 94771234567)
           const myWhatsAppNumber = "94775062608"; 
-
-          // මැසේජ් එක .download [link] ලෙස සකස් කිරීම
           const rawMessage = `.download ${ep.videoUrl}`;
           const encodedMessage = encodeURIComponent(rawMessage);
           const finalWhatsAppUrl = `https://wa.me/${myWhatsAppNumber}?text=${encodedMessage}`;
@@ -1343,7 +1324,6 @@ async function loadSeasonSubs(imdbID, title, year, season) {
             </a>
           `;
         }
-
 
         epHTML += `
           <div class="ep-card">
@@ -1778,4 +1758,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 </body>
-  </html>
+</html>
+
