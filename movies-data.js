@@ -97,6 +97,12 @@ export const EPISODES_DATA = {
         subtitleUrl: 'houseofthedragon.srt', 
         name: 'Episode 3: Season 3 Episode 3',
         whatsappDownloadUrl: 'https://wa.me/94775062608?text=.download%20House%20of%20the%20Dragon%20S03E03%20-%20https%3A%2F%2Frapidseedbox85742-secure.swift-031.seedbox.vip%2Fmedia%2F643f34718ec553520ea177a257ca3450/House.of.the.Dragon.S03E03.720p.AMZN.WEB-DL.DDP5.1.Atmos.H.264-MissionHexaPewPew.mkv'
+      },
+      '4': { 
+        videoUrl: 'https://rapidseedbox85742-files.swift-031.seedbox.vip/api/files/cat?path=%2FHouse.of.the.Dragon.S03E04.1080p.AMZN.WEB-DL.DDP5.1.Atmos.H.264-QAsH.mkv&share=B1MerLu',
+        subtitleUrl: 'houseofthedragon.srt', 
+        name: 'Episode 4: Season 3 Episode 4',
+        whatsappDownloadUrl: 'https://wa.me/94775062608?text=.download%20House%20of%20the%20Dragon%20S03E04%20-%20https%3A%2F%2Frapidseedbox85742-files.swift-031.seedbox.vip%2Fapi%2Ffiles%2Fcat%3Fpath%3D%252FHouse.of.the.Dragon.S03E04.1080p.AMZN.WEB-DL.DDP5.1.Atmos.H.264-QAsH.mkv%26share%3DB1MerLu'
       }
     }
   }
