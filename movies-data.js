@@ -13,7 +13,6 @@ export const TMDB_IMG_URL = 'https://image.tmdb.org/t/p/w200';
 // Get movie/TV details + cast using IMDb ID
 export async function fetchTMDBByImdbId(imdbId) {
     try {
-        // Find TMDB ID from IMDb ID
         const findRes = await fetch(`${TMDB_BASE_URL}/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`);
         const findData = await findRes.json();
         
@@ -28,7 +27,6 @@ export async function fetchTMDBByImdbId(imdbId) {
         
         if (!tmdbId) return null;
         
-        // Get details + credits
         const [detailsRes, creditsRes] = await Promise.all([
             fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdbId}?api_key=${TMDB_API_KEY}`),
             fetch(`${TMDB_BASE_URL}/${mediaType}/${tmdbId}/credits?api_key=${TMDB_API_KEY}`)
@@ -108,7 +106,7 @@ export const EPISODES_DATA = {
   }
 };
 
-// Hardcoded Movies
+// Hardcoded Movies + LIVE
 export const CUSTOM_MOVIES_DATA = {
   'tt4633694': { // Spider-Man: Into the Spider-Verse IMDB ID
     videoUrl: 'https://iws.sinhalachr.workers.dev/?id=qo6UNotut4VUAye5RPnr5cHR&assetToken=qghBWpb9k6xuPzeFP1ZEGk1d&download=true',
@@ -139,6 +137,14 @@ export const CUSTOM_MOVIES_DATA = {
     subtitleUrl: '', 
     name: 'Harry Potter and the Prisoner of Azkaban (2004)',
     whatsappDownloadUrl: 'https://wa.me/94775062608?text=.gdrive%20https%3A%2F%2Fdrive.google.com%2Ffile%2Fd%2F1f32MgHNhl5ajzO-5xcmtkUBVHfjRZry5%2Fpreview'
+  },
+
+  // ===== අලුතෙන් එකතු කල FIFA WORLD CUP LIVE =====
+  'fifa_live_2026': { 
+    videoUrl: 'https://www.youtube.com/embed/OJlwIdoFz9A?autoplay=1&mute=1', // YouTube embed link
+    subtitleUrl: '', 
+    name: 'FIFA World Cup 2026 Live',
+    whatsappDownloadUrl: 'https://wa.me/94775062608?text=.watch%20FIFA%20World%20Cup%20Live%20-%20https%3A%2F%2Fwww.youtube.com%2Flive%2FOJlwIdoFz9A'
   }
 };
 
@@ -153,15 +159,19 @@ export const HERO_SERIES = [
   {id:'tt13443470',title:'Wednesday',year:'2022',rating:'8.1',plot:'Follows Wednesday Addams years as a student at Nevermore Academy.'},
   {id:'tt10919420',title:'Squid Game',year:'2021',rating:'8.0',plot:'Hundreds of cash-strapped players accept a strange invitation to compete in children\'s games.'},
   {id:'tt4574334',title:'Stranger Things',year:'2016',rating:'8.7',plot:'When a young boy vanishes, a small town uncovers a mystery involving secret experiments.'},
-  {id:'tt0903747',title:'Breaking Bad',year:'2008',rating:'9.5',plot:'A chemistry teacher diagnosed with cancer turns to making meth to secure his family\'s future.'}
+  {id:'tt0903747',title:'Breaking Bad',year:'2008',rating:'9.5',plot:'A chemistry teacher diagnosed with cancer turns to making meth to secure his family\'s future.'},
+
+  // ===== අලුතෙන් එකතු කල FIFA WORLD CUP LIVE HERO =====
+  {id:'fifa_live_2026',title:'FIFA World Cup 2026 Live',year:'2026',rating:'LIVE',plot:'Watch FIFA World Cup 2026 Live Streaming. Don\'t miss the biggest football event.'},
 ];
 
 export const CATEGORIES = {
-  trending: ['tt0241527','tt0295297','tt0304141','tt4633694','tt28212876','tt11198330','tt9813792','tt13443470','tt10919420','tt4574334','tt0903747','tt8111088','tt3032476','tt0386676','tt0944947','tt0108778','tt2560140'],
+  trending: ['fifa_live_2026','tt0241527','tt0295297','tt0304141','tt4633694','tt28212876','tt11198330','tt9813792','tt13443470','tt10919420','tt4574334','tt0903747','tt8111088','tt3032476','tt0386676','tt0944947','tt0108778','tt2560140'],
   hollywood: ['tt0241527','tt0295297','tt0304141','tt4633694','tt28212876','tt0111161','tt1375666','tt0816692','tt0468569','tt0137523','tt0109830','tt0120737','tt0167260','tt4154796','tt7286456','tt15398776','tt9362722'],
   kdrama: ['tt15266542','tt14689414','tt13370348','tt11280740','tt10262630','tt13443470','tt11198330','tt1190634','tt10850932','tt11212276'],
   bollywood: ['tt8178634','tt15327088','tt12735488','tt1187043','tt12844910','tt10648342','tt0451850','tt0816442','tt0066763','tt0347304'],
-  sinhala: ['tt2386490','tt0111161','tt1375666','tt0816692','tt0468569','tt0137523']
+  sinhala: ['tt2386490','tt0111161','tt1375666','tt0816692','tt0468569','tt0137523'],
+  sports: ['fifa_live_2026'] // අලුත් category එකක්
 };
 
 export const LANG_MAP = {
